@@ -85,7 +85,7 @@ for i in range(np.shape(xp_opt)[1] - 1):
     xp_r = np.reshape(xp_opt[:,i+1], (2, 4))
 #    vv = np.zeros([ntheta[0], ntheta[0], 1 + N])
 #    for i in range(0, 1 + N):
-    FIM_t += [xp_r.T @ np.linalg.inv(np.array([[0.01, 0], [0, 0.05]])) @ xp_r]# + np.linalg.inv(np.array([[0.01, 0, 0, 0], [0, 0.05, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0.2]]))
+    FIM_t += [xp_r.T @ np.linalg.inv(np.array([[0.01, 0], [0, 0.05]])) @ xp_r]
 
 obsFIM = []
 for i in range(np.shape(FIM_t)[0]):
@@ -124,15 +124,6 @@ est = np.array([py.value(optmodel.theta[0]), py.value(optmodel.theta[1]), py.val
 objf = py.value(optmodel.objfun)
 
 x_pred_act = dynsim(x_opt[:,0], u_opt, est, 18, 18)
-
-#vv = np.zeros([ntheta[0], ntheta[0], 1+N])
-#for i in range(0, 1+N):
-#    vv[:, :, i] = xp_r[:, :, i].T @ np.array([[0.01, 0], [0, 0.05]]) @ xp_r[:, :, i]
-#V = np.linalg.inv(sum(xp_r[:, :, i].T @ np.array([[0.01, 0], [0, 0.05]]) @ xp_r[:, :, i] for i in range(0, 1+N)))
-#theta1 = w_opt[nx[0] + nx[0] * ntheta[0]:
-#               nx[0] + nx[0] * ntheta[0] + ntheta[0] + 1]
-#t = np.zeros(ntheta)
-#for i in range(ntheta[0]): t[i] = theta1[i] / np.sqrt(V[i, i])
     
 # Plot the result
 tgrid = np.linspace(0, T_opt[0], N+1)
@@ -155,67 +146,3 @@ plt.xlabel('t')
 plt.legend(['FIM_tr', 'FIM_det', 'FIM_maxeigv'])
 plt.grid()
 plt.show()
-
-# Saving the output as an excel file
-wb = Workbook()
-ws = wb.active
-ws.title = 'MBDoE results'
-ws.cell(row = 1, column = 1, value = ('Time'))
-ws.cell(row = 1, column = 2, value = ('Optimal u1'))
-ws.cell(row = 1, column = 3, value = ('Optimal u2'))
-ws.cell(row = 1, column = 4, value = ('Optimal x1'))
-ws.cell(row = 1, column = 5, value = ('Optimal x2'))
-ws.cell(row = 1, column = 6, value = ('Optimal sampling'))
-for i in range (N+1):
-    ws.cell(row = i + 2, column = 1, value = (tgrid[i][0]))
-for i in range(N):
-    ws.cell(row = i + 2, column = 2, value = (u_opt[0][i]))
-    ws.cell(row = i + 2, column = 3, value = (u_opt[1][i]))
-ws.cell(row = 20 + 0, column = 2, value = (u_opt[0][-1]))
-ws.cell(row = 20 + 0, column = 3, value = (u_opt[1][-1]))
-for i in range(N+1):
-    ws.cell(row = i + 2, column = 4, value = (x_opt[0][i]))
-    ws.cell(row = i + 2, column = 5, value = (x_opt[1][i]))
-for i in range(N):
-    ws.cell(row = i + 3, column = 6, value = (b_opt[i][0]))
-ws.cell(row = 0 + 2, column = 6, value = (0))
-    
-ws.cell(row = 1, column = 8, value = ('Time'))
-ws.cell(row = 1, column = 9, value = ('FIM trace'))
-ws.cell(row = 1, column = 10, value = ('FIM det'))
-ws.cell(row = 1, column = 11, value = ('FIM maxeigv'))
-ws.cell(row = 1, column = 12, value = ('Optimal sampling'))
-
-ws.cell(row = 2, column = 9, value = (0))
-ws.cell(row = 2, column = 10, value = (0))
-ws.cell(row = 2, column = 11, value = (0))
-ws.cell(row = 2, column = 12, value = (0))
-for i in range (N+1):
-    ws.cell(row = i + 2, column = 8, value = (tgrid[i][0]))
-for i in range(N):
-    ws.cell(row = i + 3, column = 9, value = (FIM1_trace_array[i]))
-    ws.cell(row = i + 3, column = 10, value = (FIM1_det_array[i]))
-    ws.cell(row = i + 3, column = 11, value = (FIM1_maxeigv_array[i]))
-    ws.cell(row = i + 3, column = 12, value = (b_opt[i][0]))
-    
-ws.cell(row = 1, column = 13, value = ('Sampled time'))
-ws.cell(row = 1, column = 14, value = ('x1m'))
-ws.cell(row = 1, column = 15, value = ('x2m'))
-ws.cell(row = 1, column = 16, value = ('Time'))
-ws.cell(row = 1, column = 17, value = ('x1'))
-ws.cell(row = 1, column = 18, value = ('x2'))
-for i in range(np.shape(tmeas)[0]):
-    ws.cell(row = i+2, column = 13, value = (tmeas[i]))
-    ws.cell(row = i+2, column = 14, value = (x_m[:,0][i]))
-    ws.cell(row = i+2, column = 15, value = (x_m[:,1][i]))
-for i in range(np.shape(tgrid)[0]):
-    ws.cell(row = i+2, column = 16, value = (tgrid[i][0]))
-    ws.cell(row = i+2, column = 17, value = (x_pred_act[:,0][i]))
-    ws.cell(row = i+2, column = 18, value = (x_pred_act[:,1][i]))
-    
-wb.save('MBDoEfull_resultspremiere.xlsx')
-
-## Saving the output as a text file
-#myfile = open('results.txt', 'w')
-#myfile.write('results of MBDoE')
-#myfile.close()
